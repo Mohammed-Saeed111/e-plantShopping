@@ -1,15 +1,16 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addItem } from '../features/cart/cartSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { addItem, selectCartItems } from '../features/cart/cartSlice';
 import { plants } from '../data/plants';
 import './ProductList.css';
 
 const ProductList = () => {
   const dispatch = useDispatch();
-  const [addedItems, setAddedItems] = useState(new Set());
+  const cartItems = useSelector(selectCartItems);
 
   // Get unique categories
   const categories = [...new Set(plants.map(plant => plant.category))];
+
+  const isInCart = (plantId) => cartItems.some(item => item.id === plantId);
 
   const handleAddToCart = (plant) => {
     dispatch(addItem({
@@ -18,18 +19,6 @@ const ProductList = () => {
       price: plant.price,
       image: plant.image
     }));
-
-    // Disable the button temporarily
-    setAddedItems(new Set([...addedItems, plant.id]));
-    
-    // Re-enable button after 1.5 seconds
-    setTimeout(() => {
-      setAddedItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(plant.id);
-        return newSet;
-      });
-    }, 1500);
   };
 
   return (
@@ -65,11 +54,11 @@ const ProductList = () => {
                     <div className="product-footer">
                       <span className="product-price">${plant.price.toFixed(2)}</span>
                       <button
-                        className={`add-to-cart-btn ${addedItems.has(plant.id) ? 'added' : ''}`}
+                        className={`add-to-cart-btn ${isInCart(plant.id) ? 'added' : ''}`}
                         onClick={() => handleAddToCart(plant)}
-                        disabled={addedItems.has(plant.id)}
+                        disabled={isInCart(plant.id)}
                       >
-                        {addedItems.has(plant.id) ? '✓ Added' : '🛒 Add to Cart'}
+                        {isInCart(plant.id) ? '✓ Added to Cart' : '🛒 Add to Cart'}
                       </button>
                     </div>
                   </div>
@@ -83,3 +72,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+
